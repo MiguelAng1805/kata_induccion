@@ -16,16 +16,19 @@ describe('Controller: select group', function () {
     it('should set "controller_loaded" variable in scope', function () {
       expect(scope.controller_loaded).toContain('loaded');
     });
-    
-    fit('should return case 1', function () {
-      var result = scope.registro([1009 ,1017],[2011,2011]);
 
+    it('should return case 1', function () {
+      var result = scope.registro([1009 ,1017],[2011,2011]);
+      console.log(result);
       expect(result).toEqual([2011]);
     });
-    
+
     it('should return case 2', function () {
-      
+      var result = scope.groupSelection('[[1009, 2000], [1009, 2001],[1008, 2000]]');
+      console.log(result);
+      expect(result).toEqual([1009, 2000]);
     });
+
   });
 
   describe('when going to /group', function () {
