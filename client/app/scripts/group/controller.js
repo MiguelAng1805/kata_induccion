@@ -5,55 +5,97 @@ angular.module('Group')
 
   $scope.controller_loaded = 'Group loaded!';
 
-  $scope.registro = function(p1,p2){
-    console.log('pares 1 =', p1, 'pares 2 =', p2);
-    return [2011];
-  };
+  function teamBuilding (team, array) {
+    var temp= [];
+    var aux = 0;
 
-  $scope.teamBuilding = function(team, candidate) {
-    if (team.length === 0) {
-      team.push({candidate: candidate, repeated: 1 });
-    } else {
-      var flag = false;
-      team.map(function(element) {
-        if (element.candidate === candidate) {
-          flag = true;
-          element.repeated ++;
-        } else if (element.candidate !== candidate && !flag) {
-          team.push({candidate: candidate, repeated: 1 });
-        }
-      });
-    }
+    array.map(function(item) {
+      temp[item] = (temp[item] || 0) + 1;
+    });
+
+    temp.map( function (item) {
+      team.push({candidate: parseInt(Object.keys(temp)[aux]), repeated: item });
+      aux++;
+    });
+
     return team;
-  };
+  }
 
   $scope.groupSelection = function(input) {
     var stockholmPeople = [];
+    var tempStockholmPeople = [];
     var londonPeople = [];
+    var tempLondonPeople = [];
     var team = [];
-    JSON.parse(input).map(function(item) {
-      stockholmPeople = $scope.teamBuilding(stockholmPeople, item[0]);
-      londonPeople = $scope.teamBuilding(londonPeople, item[1]);
-    });
-    $scope.push(team, stockholmPeople);
-    $scope.push(team, londonPeople);
+    var inputArray = [];
+    try {
+      inputArray = JSON.parse(input);
+    } catch (e) {
+      return 'error';
+    }
 
-    var selected = team.filter(function(item, index, array) {
-      return array.indexOf(item) === index;
+    inputArray.map(function(item) {tempStockholmPeople.push(item[0]);});
+    inputArray.map(function(item) {tempLondonPeople.push(item[1]);});
+    stockholmPeople = teamBuilding(stockholmPeople, tempStockholmPeople);
+    londonPeople = teamBuilding(londonPeople, tempLondonPeople);
+
+    inputArray.map(function(item) {
+      var tempStockholm, tempLondon;
+      tempStockholm = find(stockholmPeople, item[0]);
+      tempLondon = find(londonPeople, item[1]);
+
+      if (tempStockholm.repeated > tempLondon.repeated) {
+        team.push(tempStockholm.candidate);
+      } else {
+        team.push(tempLondon.candidate);
+      }
     });
+
+    var selected = deleteRepeats(team).sort();
+
+    if (selected.length > 3 ) {
+      var length = selected.length -1;
+      var checkSelection= [];
+
+      selected.map( function (item) {
+        var count = 0;
+        var indice = item < 2000 ? 0 : 1;
+        var deleteElement = selected.filter(function(value) { return value !== item; });
+
+        deleteElement.map(function (it) {
+          inputArray.map(function(element) {
+            if (item === element[indice] &&  element[indice === 1 ? 0 : 1] === it) {
+              count ++;
+            }
+          });
+        });
+        if (count !== length ) {
+          checkSelection.push(item);
+        }
+        selected = deleteRepeats(checkSelection);
+      });
+    }
+
     $scope.selectedPeople = selected;
     return selected;
   };
 
-  $scope.push= function(team, arrayCandidate) {
-    arrayCandidate.map(function (item) {
-      if (item.repeated>=2) {
-        team.push(item.candidate);
+  function find (array, candidate) {
+    var temp;
+    array.map(function(item) {
+      if (candidate === item.candidate) {
+        temp = item;
       }
     });
-  };
+    return temp;
+  }
 
-
+  function deleteRepeats (candidate) {
+    var array = candidate.filter(function(item, index, array) {
+      return array.indexOf(item) === index;
+    });
+    return array;
+  }
 })
 .config(function ($routeProvider) {
   $routeProvider
@@ -61,4 +103,5 @@ angular.module('Group')
     templateUrl: 'scripts/group/views/group.html',
     controller: 'group'
   });
+
 });
